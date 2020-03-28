@@ -1,0 +1,20 @@
+print("Enter a text to encrypt it :")
+
+def enc(phrase):
+    text = ""
+    for letter in phrase:
+        if letter in 'Aa':
+            text = text + "1"
+        else:
+            text = text + letter
+        if letter in 'Bb':
+            text = text + "2"
+        else:
+            text = text + letter
+        if letter in 'Cc':
+            text = text + "3"
+        else:
+            text = text + letter
+    return text
+
+print(enc(input()))
