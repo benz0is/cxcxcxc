@@ -1,6 +1,15 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { View, Text, StyleSheet, TextInput, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  ScrollView,
+  Image,
+  TouchableHighlight,
+  Modal,
+} from "react-native";
 
 export default function MovieScreen() {
   const apiurl =
@@ -9,17 +18,39 @@ export default function MovieScreen() {
     s: "Enter a movie",
     results: [],
     selected: {},
+    selectedSimular: [],
   });
 
   const search = () => {
     axios(apiurl + state.s).then(({ data }) => {
-      let results = data;
+      let results = data.results;
       setState((prevState) => {
         return { ...prevState, results: results };
       });
     });
   };
 
+  const movieApi = "https://api.themoviedb.org/3/movie/";
+  const myApi = "?api_key=a90e2347b00a19f2b339bbd1c3699ed9";
+
+  const openPopup = (id) => {
+    axios(movieApi + id + myApi).then(({ data }) => {
+      let result = data;
+      setState((prevState) => {
+        return { ...prevState, selected: result };
+      });
+    });
+  };
+  const simularMovieApi =
+    "/similar?api_key=a90e2347b00a19f2b339bbd1c3699ed9&language=en-US&page=1";
+  const simularMovies = (id) => {
+    axios(movieApi + id + simularMovieApi).then(({ data }) => {
+      let result = data.results;
+      setState((prevState) => {
+        return { ...prevState, selectedSimular: result };
+      });
+    });
+  };
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Movies</Text>
@@ -35,12 +66,74 @@ export default function MovieScreen() {
       />
       <ScrollView style={styles.results}>
         {state.results.map((result) => (
-          <View>
-            <View key={result.id} style={styles.result} />
-            <Text style={styles.heading}>{result.title}</Text>
-          </View>
+          <TouchableHighlight
+            key={result.id}
+            onPress={() => {
+              openPopup(result.id);
+              simularMovies(result.id);
+            }}
+          >
+            <View style={styles.result}>
+              <Image
+                source={{
+                  uri: "https://image.tmdb.org/t/p/w500/" + result.poster_path,
+                }}
+                style={styles.searchImage}
+                resizeMode="cover"
+              />
+
+              <Text style={styles.heading}>{result.title}</Text>
+            </View>
+          </TouchableHighlight>
         ))}
       </ScrollView>
+      <Modal
+        animationType="fade"
+        transparent={false}
+        visible={typeof state.selected.title != "undefined" ? true : false}
+      >
+        <ScrollView style={styles.popContainer}>
+          <Image
+            source={{
+              uri:
+                "https://image.tmdb.org/t/p/w500/" + state.selected.poster_path,
+            }}
+            style={styles.popupImage}
+          />
+          <View style={styles.popup}>
+            <Text style={styles.poptitle}>Title:{state.selected.title}</Text>
+            <Text style={styles.rating}>
+              Rating:{state.selected.vote_average}
+            </Text>
+            <Text style={styles.overview}>
+              Overview:{state.selected.overview}
+            </Text>
+          </View>
+          <View>
+            <Text>Simular Movies:</Text>
+            <ScrollView>
+              {state.selectedSimular.slice(0, 4).map((result) => {
+                <View style={styles.simularID} key={result.id}>
+                  <Text>{result.title}</Text>
+                  {console.log(result.title)}
+                </View>;
+              })}
+            </ScrollView>
+          </View>
+          <TouchableHighlight
+            onPress={() =>
+              setState((prevState) => {
+                return { ...prevState, selected: {} };
+              })
+            }
+          >
+            <View>
+              <Text style={styles.closebtn}>close</Text>
+              <View style={styles.gap}></View>
+            </View>
+          </TouchableHighlight>
+        </ScrollView>
+      </Modal>
     </View>
   );
 }
@@ -67,19 +160,50 @@ const styles = StyleSheet.create({
     marginBottom: 40,
     borderColor: "black",
   },
-  results: {
-    flex: 1,
-  },
   result: {
-    flex: 1,
     width: "100%",
-    marginBottom: 20,
+    borderColor: "yellow",
   },
   heading: {
-    color: "#FFF",
-    fontSize: 18,
+    fontSize: 20,
+    backgroundColor: "white",
     fontWeight: "700",
     padding: 20,
-    backgroundColor: "#445565",
+  },
+  searchImage: {
+    width: "100%",
+    height: 500,
+  },
+  popContainer: {
+    position: "relative",
+    top: 100,
+  },
+  poptitle: {
+    fontWeight: "700",
+    fontSize: 40,
+  },
+  rating: {
+    fontWeight: "700",
+    fontSize: 30,
+  },
+  popupImage: {
+    height: 500,
+    width: "100%",
+  },
+  overview: {
+    fontSize: 20,
+  },
+  closebtn: {
+    backgroundColor: "red",
+    fontSize: 40,
+    borderRadius: 5,
+    textAlign: "center",
+    paddingBottom: 50,
+  },
+  gap: {
+    padding: 50,
+  },
+  simularID: {
+    fontSize: 45,
   },
 });
