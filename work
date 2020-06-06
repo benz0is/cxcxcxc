@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {
   View,
@@ -54,8 +54,11 @@ export default function HomeScreen() {
       });
     });
   }
-  searchUpcomMov();
-  search();
+  useEffect(() => {
+    searchUpcomMov();
+    search();
+    console.log("Does it work");
+  });
   return (
     <View style={styles.container}>
       <View>
